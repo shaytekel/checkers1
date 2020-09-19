@@ -1,10 +1,23 @@
 const express = require('express');
 const app = express();
+const config = require('./config');
 app.use(express.static('public'));
-const port = process.env.PORT || 7000
+const port = 7000;
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const uuid = require('uuid');
+const redis = require('redis');
+let client = redis.createClient();
+
+client.on('error', function (err) {
+    console.log('Error ' + err);
+});
+
+client.on('connect', function () {
+    console.log('Connected to Redis');
+});
+
+
 http.listen(port);
 
 app.get('/', function (req, res) {
@@ -25,16 +38,18 @@ io.sockets.on("connection", function (socket) {
         let x = joinGame(socket);
         gameId = x.gameId;
         playerId = x.playerId;
+        // let s = JSON.stringify(socket);
+        // client.set(gameId, s);
         console.log("GameId: " + gameId);
         console.log("PlayerId: " + playerId);
         let opponentPlayerId = games[gameId][playerId].opponent;
         if (opponentPlayerId) {
-            socket.emit("game.begin", {
+            io.to(socket.id).emit("game.begin", {
                 gameId: gameId,
                 player: games[gameId][playerId].player,
                 myTurn: games[gameId][playerId].myTurn
             });
-            games[gameId][opponentPlayerId].socket.emit("game.begin", {
+            io.to(games[gameId][opponentPlayerId].socketId).emit("game.begin", {
                 gameId: gameId,
                 player: games[gameId][opponentPlayerId].player,
                 myTurn: games[gameId][opponentPlayerId].myTurn
@@ -45,37 +60,37 @@ io.sockets.on("connection", function (socket) {
     socket.on("re-connect", function (data) {
         joinExistGame(socket, data.gameId, data.playerId);
         console.log("reconnect success. player " + data.playerId + " joined to game: " + data.gameId);
-        socket.emit("game.continue", {
+        io.to(socketId).emit("game.continue", {
             player: games[data.gameId][data.playerId].player,
             myTurn: games[data.gameId][data.playerId].myTurn,
             game: games[data.gameId].game,
             gameId: data.gameId
         });
-        getOpponent(socket).emit("game.continue");
-
+        io.to(getOpponentSocketId(socketId)).emit("game.continue");
     });
 
     socket.on("make.move", function (data) {
-        if (!getOpponent(socket)) {
+        if (!getOpponentSocketId(socket)) {
             return;
         }
         switchTurns(socket);
-        socket.emit("move.made", data, false);
-        getOpponent(socket).emit("move.made", data, true);
+        io.to(socket.id).emit("move.made", data, false);
+        io.to(getOpponentSocketId(socket)).emit("move.made", data, true);
     });
 
     socket.on("update.game", function (game) {
         games[socket.gameId].game = game;
+
     });
 
     socket.on("new.game", function () {
-        if (getOpponent(socket)) {
-            socket.emit("game.begin", {
+        if (getOpponentSocketId(socket)) {
+            io.to(socket.id).emit("game.begin", {
                 player: games[socket.gameId][socket.playerId].player,
                 myTurn: true,
                 gameId: socket.gameId
             });
-            getOpponent(socket).emit("game.begin", {
+            io.to(getOpponentSocketId(socket)).emit("game.begin", {
                 player: games[socket.gameId][socket.playerId].player,
                 myTurn: false,
                 gameId: socket.gameId
@@ -84,8 +99,8 @@ io.sockets.on("connection", function (socket) {
     });
 
     socket.on("disconnect", function () {
-        if (getOpponent(socket)) {
-            getOpponent(socket).emit("opponent.left");
+        if (getOpponentSocketId(socket)) {
+            io.to(getOpponentSocketId(socket).id).emit("opponent.left");
         }
     });
 });
@@ -99,7 +114,7 @@ function joinGame(socket) {
         games[gameId][playerId] = {
             opponent: nextPlayer,
             player: 1,
-            socket: socket,
+            socketId: socket.id,
             myTurn: true
         };
         nextGame = gameId;
@@ -109,7 +124,7 @@ function joinGame(socket) {
         games[nextGame][playerId] = {
             opponent: nextPlayer,
             player: 2,
-            socket: socket,
+            socketId: socket.id,
             myTurn: false
         };
         games[nextGame][nextPlayer].opponent = playerId;
@@ -129,12 +144,12 @@ function joinExistGame(socket, gameId, playerId) {
     socket.playerId = playerId;
 }
 
-function getOpponent(socket) {
+function getOpponentSocketId(socket) {
     if (!games[socket.gameId][socket.playerId].opponent) {
         return;
     }
     let opponentId = games[socket.gameId][socket.playerId].opponent;
-    return games[socket.gameId][opponentId].socket;
+    return games[socket.gameId][opponentId].socketId;
 }
 
 function switchTurns(socket) {

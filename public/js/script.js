@@ -2,25 +2,10 @@ class Position {
     _row;
     _col;
 
-    //     constructor(position: String)
-    //     constructor(?, row, col)
-    //     constructor(position?: String, row?, col?) {
-    //     if (position) {
-    //         this._row = +position.charAt(0);
-    //         this._col = +position.charAt(1);
-    //     }
-    //     if((row)&&(col))
-    //     {
-    //         this._row = row;
-    //         this._col = col;
-    //     }
-    // }
-
     constructor(row, col) {
         this._row = row;
         this._col = col;
     }
-
 
     get row() {
         return this._row;
@@ -396,46 +381,6 @@ $(function () {
     });
 });
 
-function constructMove(curPos, toPos) {
-    let curPosition = Object.assign(new Position(), curPos);
-    let toPosition = Object.assign(new Position(), toPos);
-    return new Move(curPosition, toPosition);
-}
-
-function restoreData(data) {
-    gameOver = false;
-    player = data.player;
-    myTurn = data.myTurn;
-    gameId = data.gameId;
-    g = Object.assign(new gameController(), data.game);
-    g.board = Object.assign(new Board(), data.game._board);
-    console.log("board is restored!");
-}
-
-function renderTurnMessage() {
-    // Disable the board if it is the opponents turn
-    if (!myTurn) {
-        $("#messages").text("Your opponent's turn");
-        $(".board button").attr("disabled", true);
-        // Enable the board if it is your turn
-    } else {
-        $("#messages").text("Your turn.");
-        $(".board button").removeAttr("disabled");
-    }
-}
-
-function renderWinLoseMessage() {
-    // Disable the board if it is the opponents turn
-    if (myTurn) {
-        $("#messages").text("Game over. You lost.");
-        $(".board button").removeAttr("disabled", true);
-        // Enable the board if it is your turn
-    } else {
-        $("#messages").text("Game over. You won!");
-        $(".board button").removeAttr("disabled");
-    }
-}
-
 function makeMove(e) {
     if (gameOver) {
         socket.emit("new.game");
@@ -466,4 +411,44 @@ function makeMove(e) {
         game: g
     });
 
+}
+
+function constructMove(curPos, toPos) {
+    let curPosition = Object.assign(new Position(), curPos);
+    let toPosition = Object.assign(new Position(), toPos);
+    return new Move(curPosition, toPosition);
+}
+
+function renderTurnMessage() {
+    // Disable the board if it is the opponents turn
+    if (!myTurn) {
+        $("#messages").text("Your opponent's turn");
+        $(".board button").attr("disabled", true);
+        // Enable the board if it is your turn
+    } else {
+        $("#messages").text("Your turn.");
+        $(".board button").removeAttr("disabled");
+    }
+}
+
+function renderWinLoseMessage() {
+    // Disable the board if it is the opponents turn
+    if (myTurn) {
+        $("#messages").text("Game over. You lost.");
+        $(".board button").removeAttr("disabled", true);
+        // Enable the board if it is your turn
+    } else {
+        $("#messages").text("Game over. You won!");
+        $(".board button").removeAttr("disabled");
+    }
+}
+
+function restoreData(data) {
+    gameOver = false;
+    player = data.player;
+    myTurn = data.myTurn;
+    gameId = data.gameId;
+    g = Object.assign(new gameController(), data.game);
+    g.board = Object.assign(new Board(), data.game._board);
+    console.log("board is restored!");
 }
