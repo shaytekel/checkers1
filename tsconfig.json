@@ -1,0 +1,8 @@
+{
+  "inlineSource": true,
+  "sourceMap": true,
+  "outDir": "./dist",
+  "compilerOptions": {
+    "target": "es5"
+  }
+}

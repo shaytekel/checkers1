@@ -124,12 +124,13 @@ class Board {
 class gameController {
     _board;
     _currentPlayer;
-    _size = 4;
+    _size;
     _curPlayer1Pieces;
     _curPlayer2Pieces;
 
     constructor() {
         this._board = new Board(this._size);
+        this._size = 4;
     }
 
     get currentPlayer() {
@@ -326,7 +327,7 @@ $(function () {
     $(".board button").attr("disabled", true);
     $(".board> button").on("click", makeMove);
 
-    socket.on('connect', function () {
+    socket.on('connect', () => {
         gameId = prompt("If you have an gameId, what is it?");
         playerId = prompt("what is your Id?");
         if ((gameId) && (playerId)) {
@@ -335,7 +336,7 @@ $(function () {
             socket.emit('join');
     });
 
-    socket.on("game.begin", function (data) {
+    socket.on("game.begin", data => {
         gameOver = false;
         player = data.player;
         myTurn = data.myTurn;
