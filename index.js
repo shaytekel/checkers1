@@ -69,7 +69,7 @@ io.sockets.on("connection", function (socket) {
         io.to(socketId).emit("game.continue", {
             player: games[data.gameId][data.playerId].player,
             myTurn: games[data.gameId][data.playerId].myTurn,
-            game: games[data.gameId].game,
+            gameData: games[data.gameId].game,
             gameId: data.gameId
         });
         io.to(getOpponentSocketId(socketId)).emit("game.continue");

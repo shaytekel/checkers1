@@ -129,8 +129,8 @@ class gameController {
     _curPlayer2Pieces;
 
     constructor() {
-        this._board = new Board(this._size);
         this._size = 4;
+        this._board = new Board(this._size);
     }
 
     get currentPlayer() {
@@ -409,7 +409,7 @@ function makeMove(e) {
         gameId: gameId,
         player: player,
         move: move,
-        game: g
+        gameData: g
     });
 
 }
