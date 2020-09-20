@@ -1,4 +1,7 @@
-export class gameController {
+import {Board} from "./data_objects/board.js";
+import {Position} from "./data_objects/position.js";
+
+export class GameController  {
     _board;
     _currentPlayer;
     _size;
@@ -6,8 +9,8 @@ export class gameController {
     _curPlayer2Pieces;
 
     constructor() {
-        this._board = new Board(this._size);
         this._size = 4;
+        this._board = new Board(this._size);
     }
 
     get currentPlayer() {

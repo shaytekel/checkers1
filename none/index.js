@@ -6,7 +6,7 @@ import * as redis from 'redis'
 
 // const express = require('express');
 const app = express();
-const config = require('./config');
+const config = require('../config');
 app.use(express.static('public'));
 const port = 7000;
 const server = http.createServer(app);

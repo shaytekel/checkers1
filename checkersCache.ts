@@ -12,7 +12,7 @@ export class CheckersCache {
     constructor() {
     }
 
-    async setGame(gameId, game) {
+    static async setGame(gameId, game) {
         try {
             await cache.set(gameId, JSON.stringify(game));
         } catch (e) {
@@ -20,10 +20,9 @@ export class CheckersCache {
         }
     }
 
-    async getGame(gameId) {
+    static async getGame(gameId) {
         try {
-            let parse = JSON.parse(await cache.get(gameId));
-            return parse;
+            return JSON.parse(await cache.get(gameId));
 
         } catch (e) {
             console.log("Error while trying to get game: " + gameId + " from cache");
@@ -34,8 +33,8 @@ export class CheckersCache {
 let c = new CheckersCache();
 
 async function f() {
-    console.log(await c.setGame("90", {bla: "Bw"}));
-    console.log(await c.getGame("90"));
+    console.log(await CheckersCache.setGame("90", {bla: "Bw"}));
+    console.log(await CheckersCache.getGame("90"));
 }
 
 

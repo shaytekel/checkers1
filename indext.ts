@@ -1,15 +1,17 @@
-const express = require('express');
-const app = express();
-const config = require('./config');
-app.use(express.static('public'));
-const port = 7000;
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-const uuid = require('uuid');
-import {Player} from './player';
+import * as express from 'express';
+import * as http from 'http';
+import * as socketio from 'socket.io';
+import * as uuid from 'uuid';
 import {CheckersCache} from './checkersCache';
+import {Player} from './player';
 
-http.listen(port);
+const app = express();
+app.use(express.static('public'));
+const server = http.createServer(app);
+const io = socketio(server);
+const config = require('./config');
+
+server.listen(7000);
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
@@ -24,7 +26,7 @@ io.sockets.on("connection", (socket) => {
     socket.emit('connect');
 
     socket.on("join", async () => {
-        console.log(await checkersCache.getGame("90"));
+        console.log(await CheckersCache.getGame("90"));
 
         let x = await joinGame(socket);
         let gameId = x.gameId;
@@ -47,11 +49,11 @@ io.sockets.on("connection", (socket) => {
                 myTurn: game[opponentPlayerId].myTurn
             });
         }
-        await checkersCache.setGame(gameId, game);
+        await CheckersCache.setGame(gameId, game);
     });
 
     socket.on("re-connect", async (data) => {
-        game = await checkersCache.getGame(data.gameId);
+        game = await CheckersCache.getGame(data.gameId);
         joinExistGame(socket, data.gameId, data.playerId);
         console.log("reconnect success. player " + data.playerId + " joined to game: " + data.gameId);
         io.to(socket.id).emit("game.continue", {
@@ -61,30 +63,30 @@ io.sockets.on("connection", (socket) => {
             gameId: data.gameId
         });
         io.to(getOpponentSocketId(socket)).emit("game.continue");
-        await checkersCache.setGame(socket.gameId, game);
+        await CheckersCache.setGame(socket.gameId, game);
     });
 
     socket.on("make.move", async (data) => {
-        game = await checkersCache.getGame(socket.gameId);
+        game = await CheckersCache.getGame(socket.gameId);
         if (!getOpponentSocketId(socket)) {
             return;
         }
         switchTurns(socket);
         io.to(socket.id).emit("move.made", data, false);
         io.to(getOpponentSocketId(socket)).emit("move.made", data, true);
-        await checkersCache.setGame(socket.gameId, game);
+        await CheckersCache.setGame(socket.gameId, game);
 
     });
 
     socket.on("update.game", async (gameData) => {
-        game = await checkersCache.getGame(socket.gameId);
+        game = await CheckersCache.getGame(socket.gameId);
         game.gameData = gameData;
-        await checkersCache.setGame(socket.gameId, game);
+        await CheckersCache.setGame(socket.gameId, game);
         // games[socket.gameId].game = game;
     });
 
     socket.on("new.game", async () => {
-        game = await checkersCache.getGame(socket.gameId)
+        game = await CheckersCache.getGame(socket.gameId)
         if (getOpponentSocketId(socket)) {
             io.to(socket.id).emit("game.begin", {
                 player: game[socket.playerId].player,
@@ -101,7 +103,7 @@ io.sockets.on("connection", (socket) => {
     });
 
     socket.on("disconnect", async () => {
-        game = await checkersCache.getGame(socket.gameId);
+        game = await CheckersCache.getGame(socket.gameId);
         if (nextPlayer === socket.playerId) {
             nextPlayer = null;
             nextGame = null;
@@ -127,7 +129,7 @@ async function joinGame(socket) {
         };
         console.log("created new Game: " + gameId + ". player " + playerId + " joined to this game.");
     } else {
-        game = await checkersCache.getGame(gameId);
+        game = await CheckersCache.getGame(gameId);
         // game[playerId] = new Player(nextPlayer, 2, socket.id, false);
         game[playerId] = {
             opponent: nextPlayer,
