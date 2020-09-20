@@ -41,9 +41,8 @@ export class Board {
     }
 
     isInBorders(row, col) {
-        if ((row < 0) || (col < 0) || (row > this.board.length) || (col > this.board.length))
-            return false;
-        return true
+        return !((row < 0) || (col < 0) || (row > this.board.length) || (col > this.board.length));
+
     }
 
     isPlayerExist(player, currentPosition) {
@@ -55,7 +54,7 @@ export class Board {
     }
 
     print() {
-        console.log("---------")
+        console.log("---------");
         for (let i = 0; i < this.board.length; i++) {
             let line = "|";
             for (let j = 0; j < this.board.length; j++) {
@@ -64,6 +63,6 @@ export class Board {
             line += "|";
             console.log(line);
         }
-        console.log("---------")
+        console.log("---------");
     }
 }

@@ -1,13 +1,14 @@
-import {GameController} from "./gameController.js";
-import {Move} from "./data_objects/move.js";
-import {Position} from "./data_objects/position.js";
-import {Board} from "./data_objects/board.js";
+import {GameController} from "./controllers/gameController.js";
+import {Move} from "./models/move.js";
+import {Position} from "./models/position.js";
+import {Board} from "./models/board.js";
 
 let socket = io();
 let player, myTurn, gameOver, gameId, playerId;
 let g = new GameController();
 let movesPlayer = buildMoves();
 
+//scripted moves
 function buildMoves() {
     let player1Moves = [];
     let player2Moves = [];
@@ -45,7 +46,7 @@ $(function () {
             socket.emit('join');
     });
 
-    socket.on("game.begin", data => {
+    socket.on("game begin", data => {
         gameOver = false;
         player = data.player;
         myTurn = data.myTurn;
@@ -54,11 +55,11 @@ $(function () {
         g.printBoard();
 
         if (myTurn)
-            socket.emit("update.game", g);
+            socket.emit("update game", g);
         renderTurnMessage();
     });
 
-    socket.on("move.made", function (data, myUpdatedTurn) {
+    socket.on("update board", function (data, myUpdatedTurn) {
         let move = constructMove(data.move._currentPosition, data.move._toPosition);
 
         g.doMove(data.player, move);
@@ -67,7 +68,7 @@ $(function () {
 
         //update server only once
         if (!myTurn)
-            socket.emit("update.game", g);
+            socket.emit("update game", g);
         myTurn = myUpdatedTurn;
 
         if (!g.isWinner()) {
@@ -78,12 +79,12 @@ $(function () {
         }
     });
 
-    socket.on("opponent.left", function () {
+    socket.on("opponent left", function () {
         $("#messages").text("Your opponent left the game.");
         $(".board button").attr("disabled", true);
     });
 
-    socket.on("game.continue", function (data) {
+    socket.on("game continue", function (data) {
         if (data)
             restoreData(data);
         g.printBoard();
@@ -93,7 +94,7 @@ $(function () {
 
 function makeMove(e) {
     if (gameOver) {
-        socket.emit("new.game");
+        socket.emit("new game");
         return;
     }
 
@@ -114,7 +115,7 @@ function makeMove(e) {
     }
 
     //Emit the move to the server
-    socket.emit("make.move", {
+    socket.emit("make move", {
         gameId: gameId,
         player: player,
         move: move,
@@ -130,11 +131,9 @@ function constructMove(curPos, toPos) {
 }
 
 function renderTurnMessage() {
-    // Disable the board if it is the opponents turn
     if (!myTurn) {
         $("#messages").text("Your opponent's turn");
         $(".board button").attr("disabled", true);
-        // Enable the board if it is your turn
     } else {
         $("#messages").text("Your turn.");
         $(".board button").removeAttr("disabled");
@@ -142,11 +141,9 @@ function renderTurnMessage() {
 }
 
 function renderWinLoseMessage() {
-    // Disable the board if it is the opponents turn
     if (myTurn) {
         $("#messages").text("Game over. You lost.");
         $(".board button").removeAttr("disabled", true);
-        // Enable the board if it is your turn
     } else {
         $("#messages").text("Game over. You won!");
         $(".board button").removeAttr("disabled");
