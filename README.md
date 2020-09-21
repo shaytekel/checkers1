@@ -22,3 +22,7 @@ Open `chekers/config.ts` then edit it with your settings.
 
 - server port;
 - redis server port;
+
+## Running
+
+open source code in your browser in order to see the state of game.
