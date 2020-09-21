@@ -24,6 +24,7 @@ io.sockets.on("connection", (socket) => {
     socket.emit('connect');
 
     socket.on("join", async () => {
+        console.log("wl");
         let {gameId, playerId, match} = await joinGame(socket);
         console.log("GameId: " + gameId);
         console.log("PlayerId: " + playerId);
@@ -33,6 +34,7 @@ io.sockets.on("connection", (socket) => {
             io.to(getOpponentSocketId(socket)).emit("game begin", buildData(socket.gameId, game[socket.playerId].opponent));
         }
         await GameCache.setGame(gameId, game);
+        game = null;
     });
 
     socket.on("re-connect", async (data) => {
