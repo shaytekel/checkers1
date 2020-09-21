@@ -24,12 +24,15 @@ export class GameCache {
         }
     };
 
-    static getGame = async (gameId:string): Promise<any> => {
+    static getGame = async (gameId:string) => {
         try {
-            return JSON.parse(await cache.get(config.redis.redis_root_key + gameId));
+            let game = JSON.parse(await cache.get(config.redis.redis_root_key + gameId));
+            if(game === null)
+                console.log("Error while trying to get game: " + gameId + " from cache:");
+            return game;
 
         } catch (e) {
-            console.log("Error while trying to get game: " + gameId + " from cache");
+            console.log("Error while trying to get game: " + gameId + " from cache:" + e.message);
         }
     }
 }

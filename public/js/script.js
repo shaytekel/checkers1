@@ -155,7 +155,7 @@ function restoreData(data) {
     player = data.player;
     myTurn = data.myTurn;
     gameId = data.gameId;
-    g = Object.assign(new GameController(), data.game);
-    g.board = Object.assign(new Board(), data.game._board);
+    g = Object.assign(new GameController(), data.gameData);
+    g.board = Object.assign(new Board(), data.gameData._board);
     console.log("board is restored!");
 }

@@ -39,8 +39,8 @@ io.sockets.on("connection", (socket) => {
         game = await GameCache.getGame(data.gameId);
         joinExistGame(socket, data.gameId, data.playerId);
         console.log("reconnect success. player " + data.playerId + " joined to game: " + data.gameId);
-        io.to(socket.id).emit("game continue", buildData(socket.gameId, socket.playerId, game));
-        io.to(getOpponentSocketId).emit("game continue", buildData(socket.gameId, game[socket.playerId].opponent));
+        io.to(socket.id).emit("game continue", buildData(socket.gameId, socket.playerId, game.gameData));
+        io.to(getOpponentSocketId(socket)).emit("game continue");
         await GameCache.setGame(socket.gameId, game);
     });
 
@@ -50,12 +50,15 @@ io.sockets.on("connection", (socket) => {
         io.to(socket.id).emit("update board", data, false);
         io.to(getOpponentSocketId(socket)).emit("update board", data, true);
         await GameCache.setGame(socket.gameId, game);
+
     });
 
     socket.on("update game", async (gameData) => {
+
         game = await GameCache.getGame(socket.gameId);
         game.gameData = gameData;
         await GameCache.setGame(socket.gameId, game);
+
     });
 
     socket.on("new game", async () => {
@@ -111,14 +114,13 @@ async function joinGame(socket): Promise<any> {
 }
 
 function buildData(gameId: string, playerId: string, gameData?): object {
-    let obj = {
+    return {
         gameId: gameId,
         player: game[playerId].player,
         myTurn: game[playerId].myTurn,
+        gameData: gameData
+
     };
-    if (gameData)
-        obj[gameData] = gameData;
-    return obj;
 
 }
 
